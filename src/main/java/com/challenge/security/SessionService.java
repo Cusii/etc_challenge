@@ -16,14 +16,12 @@ import java.util.UUID;
 public class SessionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SessionService.class);
-    private final Map<String, String> tokens = new HashMap<>();
-
+    private final Map<String, TokenData> csrfTokens = new HashMap<>();
 
     private static final String SECRET_KEY = "l9r7mcywzWO5Drc8hU0MSLMb3rMuzbUvcI2KTWb+cxQ=";
+    private static final long CSRF_TOKEN_EXPIRATION_MS = 15 * 60 * 1000; // 15 minutos
 
     public String generateJwtToken(String username) {
-
-        // Decode the Base64 encoded secret key
         byte[] secretKeyBytes = Base64.getDecoder().decode(SECRET_KEY);
         SecretKeySpec secretKeySpec = new SecretKeySpec(secretKeyBytes, "HmacSHA256");
 
@@ -42,12 +40,30 @@ public class SessionService {
 
     public String generateCsrfToken() {
         String token = UUID.randomUUID().toString();
-        tokens.put(UUID.randomUUID().toString(), token);
+        csrfTokens.put(token, new TokenData(token, System.currentTimeMillis()));
         return token;
     }
 
     public boolean validateCsrfToken(String token) {
-        return tokens.containsValue(token);
+        TokenData tokenData = csrfTokens.get(token);
+        if (tokenData == null) {
+            return false;
+        }
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - tokenData.timestamp > CSRF_TOKEN_EXPIRATION_MS) {
+            csrfTokens.remove(token);
+            return false;
+        }
+        return true;
     }
 
+    private static class TokenData {
+        String token;
+        long timestamp;
+
+        TokenData(String token, long timestamp) {
+            this.token = token;
+            this.timestamp = timestamp;
+        }
+    }
 }

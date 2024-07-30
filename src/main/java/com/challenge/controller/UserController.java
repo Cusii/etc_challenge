@@ -54,10 +54,14 @@ public class UserController {
     public Response userRegister(UserRegisterDTO userRegisterDTO) {
         LOG.info("Attempting to register user: {}", userRegisterDTO.getUserName());
         try {
-            Users createdUser = userService.userRegister(userRegisterDTO);
-            return Response.status(Response.Status.CREATED)
-                    .entity("{\"message\":\"User registered successfully.\"}")
-                    .build();
+            Users user =userService.userRegister(userRegisterDTO);
+
+            String jwtToken = sessionService.generateJwtToken(user.getUserName());
+            String csrfToken = sessionService.generateCsrfToken();
+
+            LoginResponse loginResponse = new LoginResponse(jwtToken, csrfToken);
+
+            return Response.ok(loginResponse).header("X-CSRF-Token", csrfToken).build();
         } catch (UserAlreadyExistsException e) {
             LOG.warn("User registration failed: {}", e.getMessage());
             return Response.status(Response.Status.CONFLICT)

@@ -13,22 +13,19 @@ import org.slf4j.LoggerFactory;
 @Provider
 public class CSRFSecurityFilter implements ContainerRequestFilter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JWTSecurityFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CSRFSecurityFilter.class);
 
     @ConfigProperty(name = "quarkus.http.csrf.token.header")
     String csrfTokenHeader;
 
     @Inject
-     SessionService sessionService;
+    SessionService sessionService;
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        LOG.info("Entro a filter crsf 1");
-        if (requestContext.getUriInfo().getPath().contains("/user/login") ) {
+        if (requestContext.getUriInfo().getPath().contains("/user/login") || requestContext.getUriInfo().getPath().contains("/user/register")) {
             return;
         }
-        LOG.info("Entro a filter crsf 2");
-
 
         String csrfToken = requestContext.getHeaderString(csrfTokenHeader);
         if (csrfToken == null || !sessionService.validateCsrfToken(csrfToken)) {
