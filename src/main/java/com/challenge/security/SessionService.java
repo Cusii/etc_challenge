@@ -4,8 +4,6 @@ import com.challenge.model.TokenData;
 import io.smallrye.jwt.build.Jwt;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

@@ -5,16 +5,11 @@ import com.challenge.exception.TaskNotFoundException;
 import com.challenge.mapper.TaskMapper;
 import com.challenge.model.TaskDTO;
 import com.challenge.repository.TaskRepository;
-import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,6 +37,7 @@ public class TaskService {
         task.setTaskName(taskDTO.getTaskName());
         task.setDescription(taskDTO.getDescription());
         task.setStatus(taskDTO.getStatus());
+        task.setImage(taskDTO.getImage());
         taskRepository.persist(task);
         log.debug("Task updated with ID: {}", task.getTaskId());
         return task;

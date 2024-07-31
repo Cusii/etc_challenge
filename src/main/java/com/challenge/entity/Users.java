@@ -18,7 +18,7 @@ public class Users {
     private String userName;
 
     private String phone;
-    private Integer age;
+    private String age;
     private String gender;
 
     @Column(name = "user_password")
