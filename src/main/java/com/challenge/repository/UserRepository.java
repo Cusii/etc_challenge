@@ -10,10 +10,6 @@ import java.util.Optional;
 @ApplicationScoped
 public class UserRepository implements PanacheRepository<Users> {
 
-    public List<Users> findAllUsers() {
-        return listAll();
-    }
-
     public Optional<Users> findByName(String userName) {
         return find("userName", userName).firstResultOptional();
     }

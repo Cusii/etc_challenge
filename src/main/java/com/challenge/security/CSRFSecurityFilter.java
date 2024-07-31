@@ -6,14 +6,12 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 @Provider
 public class CSRFSecurityFilter implements ContainerRequestFilter {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CSRFSecurityFilter.class);
 
     @ConfigProperty(name = "quarkus.http.csrf.token.header")
     String csrfTokenHeader;
@@ -23,7 +21,8 @@ public class CSRFSecurityFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        if (requestContext.getUriInfo().getPath().contains("/user/login") || requestContext.getUriInfo().getPath().contains("/user/register")) {
+        String path = requestContext.getUriInfo().getPath();
+        if (path.equals("/user/login") || path.equals("/user/register")) {
             return;
         }
 

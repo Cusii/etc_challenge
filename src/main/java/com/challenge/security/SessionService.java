@@ -1,23 +1,25 @@
 package com.challenge.security;
 
+import com.challenge.model.TokenData;
 import io.smallrye.jwt.build.Jwt;
-import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @ApplicationScoped
 public class SessionService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SessionService.class);
-    private final Map<String, TokenData> csrfTokens = new HashMap<>();
-
+    private final Map<String, TokenData> csrfTokens = new ConcurrentHashMap<>();
     private static final String SECRET_KEY = "l9r7mcywzWO5Drc8hU0MSLMb3rMuzbUvcI2KTWb+cxQ=";
     private static final long CSRF_TOKEN_EXPIRATION_MS = 15 * 60 * 1000; // 15 minutos
 
@@ -30,7 +32,7 @@ public class SessionService {
                 .expiresIn(3600) // 1 hora
                 .sign(secretKeySpec); // Firma el JWT con la clave secreta configurada
 
-        LOG.info("Generated JWT for user: {}", username);
+        log.info("Generated JWT: {}", token);
         return token;
     }
 
@@ -41,6 +43,7 @@ public class SessionService {
     public String generateCsrfToken() {
         String token = UUID.randomUUID().toString();
         csrfTokens.put(token, new TokenData(token, System.currentTimeMillis()));
+        log.info("Generated CSRF Token: {}", token);
         return token;
     }
 
@@ -50,20 +53,11 @@ public class SessionService {
             return false;
         }
         long currentTime = System.currentTimeMillis();
-        if (currentTime - tokenData.timestamp > CSRF_TOKEN_EXPIRATION_MS) {
+        if (currentTime - tokenData.getTimestamp() > CSRF_TOKEN_EXPIRATION_MS) {
             csrfTokens.remove(token);
+            log.warn("CSRF Token expired: {}", token);
             return false;
         }
         return true;
-    }
-
-    private static class TokenData {
-        String token;
-        long timestamp;
-
-        TokenData(String token, long timestamp) {
-            this.token = token;
-            this.timestamp = timestamp;
-        }
     }
 }

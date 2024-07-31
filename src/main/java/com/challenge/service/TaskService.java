@@ -1,6 +1,7 @@
 package com.challenge.service;
 
 import com.challenge.entity.Tasks;
+import com.challenge.exception.TaskNotFoundException;
 import com.challenge.mapper.TaskMapper;
 import com.challenge.model.TaskDTO;
 import com.challenge.repository.TaskRepository;
@@ -8,6 +9,7 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +17,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @ApplicationScoped
 public class TaskService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TaskService.class);
     private static final TaskMapper mapper = TaskMapper.INSTANCE;
 
     @Inject
@@ -26,56 +28,53 @@ public class TaskService {
 
     @Transactional
     public Tasks createTask(TaskDTO taskDTO) {
-        Tasks tasks = mapper.toEntity(taskDTO);
-        taskRepository.persist(tasks);
-        LOG.debug("Task created with ID: {}", tasks.getTaskId());
-        return tasks;
+        validateTaskDTO(taskDTO);
+        Tasks task = mapper.toEntity(taskDTO);
+        taskRepository.persist(task);
+        log.debug("Task created with ID: {}", task.getTaskId());
+        return task;
     }
 
     @Transactional
     public Tasks updateTask(Long id, TaskDTO taskDTO) {
-        Optional<Tasks> optionalTask = taskRepository.findByIdOptional(id);
-        if (optionalTask.isPresent()) {
-            Tasks task = optionalTask.get();
-            task.setTaskName(taskDTO.getTaskName());
-            task.setDescription(taskDTO.getDescription());
-            task.setStatus(taskDTO.getStatus());
-            taskRepository.persist(task);
-            LOG.debug("Task updated with ID: {}", task.getTaskId());
-            return task;
-        } else {
-            LOG.error("Task with ID {} not found", id);
-            throw new RuntimeException("Task not found");
-        }
+        validateTaskDTO(taskDTO);
+        Tasks task = findTaskOrThrow(id);
+        task.setTaskName(taskDTO.getTaskName());
+        task.setDescription(taskDTO.getDescription());
+        task.setStatus(taskDTO.getStatus());
+        taskRepository.persist(task);
+        log.debug("Task updated with ID: {}", task.getTaskId());
+        return task;
     }
 
     @Transactional
     public void deleteTask(Long id) {
-        Optional<Tasks> optionalTask = taskRepository.findByIdOptional(id);
-        if (optionalTask.isPresent()) {
-            taskRepository.delete(optionalTask.get());
-            LOG.debug("Task deleted with ID: {}", id);
-        } else {
-            LOG.error("Task with ID {} not found", id);
-            throw new RuntimeException("Task not found");
-        }
+        Tasks task = findTaskOrThrow(id);
+        taskRepository.delete(task);
+        log.debug("Task deleted with ID: {}", id);
     }
 
     public TaskDTO getTaskById(Long id) {
-        Optional<Tasks> optionalTask = taskRepository.findByIdOptional(id);
-        if (optionalTask.isPresent()) {
-            return mapper.toDTO(optionalTask.get());
-        } else {
-            LOG.error("Task with ID {} not found", id);
-            throw new RuntimeException("Task not found");
-        }
+        Tasks task = findTaskOrThrow(id);
+        return mapper.toDTO(task);
     }
 
     public List<TaskDTO> getAllTasks() {
         List<Tasks> tasks = taskRepository.listAll();
-        Log.info(tasks);
+        log.info("Retrieved {} tasks", tasks.size());
         return tasks.stream()
                 .map(mapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    private void validateTaskDTO(TaskDTO taskDTO) {
+        if (taskDTO.getTaskName() == null || taskDTO.getTaskName().isEmpty()) {
+            throw new IllegalArgumentException("Task name cannot be null or empty");
+        }
+    }
+
+    private Tasks findTaskOrThrow(Long id) {
+        return taskRepository.findByIdOptional(id)
+                .orElseThrow(() -> new TaskNotFoundException("Task with ID " + id + " not found"));
     }
 }

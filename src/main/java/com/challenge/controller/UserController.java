@@ -11,27 +11,23 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Path("/user")
 public class UserController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
-
     @Inject
     UserService userService;
-
     @Inject
     SessionService sessionService;
-
 
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response userLogin(UserLoginDTO userLoginDTO) {
-        LOG.info("Attempting to log in user: {}", userLoginDTO.getUserName());
+        log.info("Attempting to login user: {}", userLoginDTO.getUserName());
         boolean isValid = userService.validateUserPassword(userLoginDTO.getUserName(), userLoginDTO.getPassword());
 
         if (isValid) {
@@ -42,7 +38,7 @@ public class UserController {
 
             return Response.ok(loginResponse).header("X-CSRF-Token", csrfToken).build();
         } else {
-            LOG.warn("Unauthorized login attempt for user: {}", userLoginDTO.getUserName());
+            log.warn("Unauthorized login attempt for user: {}", userLoginDTO.getUserName(), "do not match");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
@@ -52,7 +48,7 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response userRegister(UserRegisterDTO userRegisterDTO) {
-        LOG.info("Attempting to register user: {}", userRegisterDTO.getUserName());
+        log.info("Attempting to register user: {}", userRegisterDTO.getUserName());
         try {
             Users user =userService.userRegister(userRegisterDTO);
 
@@ -63,9 +59,9 @@ public class UserController {
 
             return Response.ok(loginResponse).header("X-CSRF-Token", csrfToken).build();
         } catch (UserAlreadyExistsException e) {
-            LOG.warn("User registration failed: {}", e.getMessage());
+            log.warn("User registration failed: {}", e.getMessage());
             return Response.status(Response.Status.CONFLICT)
-                    .entity("{\"message\":\"Username already in use.\"}")
+                    .entity("{\"message\":\"El usuario ya existe.\"}")
                     .build();
         }
     }

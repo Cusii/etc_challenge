@@ -1,5 +1,7 @@
 package com.challenge.controller;
 
+import com.challenge.exception.TaskNotFoundException;
+import com.challenge.model.ErrorResponse;
 import com.challenge.model.TaskDTO;
 import com.challenge.service.TaskService;
 import jakarta.inject.Inject;
@@ -23,65 +25,82 @@ public class TaskController {
     @POST
     @Path("/create")
     public Response taskCreate(TaskDTO taskDTO) {
-        LOG.info("Trying to create {}", taskDTO);
+        LOG.info("Attempting to create task: {}", taskDTO);
         try {
             taskService.createTask(taskDTO);
             return Response.status(Response.Status.CREATED).build();
         } catch (Exception e) {
             LOG.error("Error creating task: {}", e.getMessage());
-            return Response.status(Response.Status.CONFLICT).entity("{\"message\":\"Error al crear la tarea.\"}").build();
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse("Error al crear la tarea.")).build();
         }
     }
 
     @PUT
     @Path("/update/{id}")
     public Response taskUpdate(@PathParam("id") Long id, TaskDTO taskDTO) {
-        LOG.info("Trying to update task with ID {}", id);
+        LOG.info("Attempting to update task with ID {}", id);
         try {
             taskService.updateTask(id, taskDTO);
-            return Response.ok().build();
+            return Response.noContent().build();
+        } catch (TaskNotFoundException e) {
+            LOG.error("Task not found: {}", e.getMessage());
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Tarea no encontrada.")).build();
         } catch (Exception e) {
             LOG.error("Error updating task: {}", e.getMessage());
-            return Response.status(Response.Status.CONFLICT).entity("{\"message\":\"Error al actualizar la tarea.\"}").build();
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse("Error al actualizar la tarea.")).build();
         }
     }
 
     @DELETE
     @Path("/delete/{id}")
     public Response taskDelete(@PathParam("id") Long id) {
-        LOG.info("Trying to delete task with ID {}", id);
+        LOG.info("Attempting to delete task with ID {}", id);
         try {
             taskService.deleteTask(id);
-            return Response.ok().build();
+            return Response.noContent().build();
+        } catch (TaskNotFoundException e) {
+            LOG.error("Task not found: {}", e.getMessage());
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Tarea no encontrada.")).build();
         } catch (Exception e) {
             LOG.error("Error deleting task: {}", e.getMessage());
-            return Response.status(Response.Status.NOT_FOUND).entity("{\"message\":\"Error al eliminar la tarea.\"}").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse("Error al eliminar la tarea.")).build();
         }
     }
 
     @GET
     @Path("/{id}")
     public Response getTaskById(@PathParam("id") Long id) {
-        LOG.info("Trying to get task with ID {}", id);
+        LOG.info("Attempting to get task with ID {}", id);
         try {
             TaskDTO taskDTO = taskService.getTaskById(id);
             return Response.ok(taskDTO).build();
+        } catch (TaskNotFoundException e) {
+            LOG.error("Task not found: {}", e.getMessage());
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Tarea no encontrada.")).build();
         } catch (Exception e) {
             LOG.error("Error retrieving task: {}", e.getMessage());
-            return Response.status(Response.Status.NOT_FOUND).entity("{\"message\":\"Tarea no encontrada.\"}").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse("Error al obtener la tarea.")).build();
         }
     }
 
     @GET
     @Path("/all")
     public Response getAllTasks() {
-        LOG.info("Trying to get all tasks");
+        LOG.info("Attempting to get all tasks");
         try {
             List<TaskDTO> tasks = taskService.getAllTasks();
             return Response.ok(tasks).build();
         } catch (Exception e) {
             LOG.error("Error retrieving tasks: {}", e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"message\":\"Error al obtener las tareas.\"}").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse("Error al obtener las tareas.")).build();
         }
     }
 }
