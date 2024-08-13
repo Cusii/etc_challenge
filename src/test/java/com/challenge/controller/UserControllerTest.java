@@ -1,6 +1,6 @@
 package com.challenge.controller;
 
-import com.challenge.entity.Users;
+import com.challenge.entity.UserEntity;
 import com.challenge.exception.UserAlreadyExistsException;
 import com.challenge.model.LoginResponse;
 import com.challenge.model.UserLoginDTO;
@@ -61,8 +61,8 @@ class UserControllerTest {
 
     @Test
     void testUserRegister_Success() {
-        UserRegisterDTO userRegisterDTO = new UserRegisterDTO("username", "password", 12, "Male", "M");
-        Users user = new Users();
+        UserRegisterDTO userRegisterDTO = new UserRegisterDTO("username", "password", "12", "Male", "M");
+        UserEntity user = new UserEntity();
         user.setUserName("username");
         when(userService.userRegister(userRegisterDTO)).thenReturn(user);
         when(sessionService.generateJwtToken("username")).thenReturn("jwtToken");
@@ -79,7 +79,7 @@ class UserControllerTest {
 
     @Test
     void testUserRegister_UserAlreadyExists() {
-        UserRegisterDTO userRegisterDTO = new UserRegisterDTO("username", "password", 32, "male", "M");
+        UserRegisterDTO userRegisterDTO = new UserRegisterDTO("username", "password", "32", "male", "M");
         when(userService.userRegister(userRegisterDTO)).thenThrow(new UserAlreadyExistsException("El usuario ya existe."));
 
         Response response = userController.userRegister(userRegisterDTO);

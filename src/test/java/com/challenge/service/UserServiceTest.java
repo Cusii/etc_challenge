@@ -1,8 +1,7 @@
 package com.challenge.service;
 
-import com.challenge.entity.Users;
+import com.challenge.entity.UserEntity;
 import com.challenge.exception.UserAlreadyExistsException;
-import com.challenge.mapper.UserMapper;
 import com.challenge.model.UserRegisterDTO;
 import com.challenge.repository.UserRepository;
 import com.challenge.util.EncryptionUtil;
@@ -11,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -33,13 +30,13 @@ class UserServiceTest {
     private UserService userService;
 
     private UserRegisterDTO userRegisterDTO;
-    private Users user;
+    private UserEntity user;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        userRegisterDTO = new UserRegisterDTO("username", "1234-5678", 25, "M", "password");
-        user = new Users();
+        userRegisterDTO = new UserRegisterDTO("username", "1234-5678", "25", "M", "password");
+        user = new UserEntity();
         user.setUserName("username");
         user.setUserPassword("encryptedPassword");
     }
@@ -66,7 +63,7 @@ class UserServiceTest {
         });
 
         assertEquals("El usuario username ya existe.", thrown.getMessage());
-        verify(userRepository, times(0)).persist(any(Users.class));
+        verify(userRepository, times(0)).persist(any(UserEntity.class));
     }
 
 //    @Test

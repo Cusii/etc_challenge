@@ -1,15 +1,15 @@
 package com.challenge.repository;
 
-import com.challenge.entity.Users;
+import com.challenge.entity.UserEntity;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Optional;
 
 @ApplicationScoped
-public class UserRepository implements PanacheRepository<Users> {
+public class UserRepository implements PanacheRepository<UserEntity> {
 
-    public Optional<Users> findByName(String userName) {
+    public Optional<UserEntity> findByName(String userName) {
         return find("userName", userName).firstResultOptional();
     }
 }

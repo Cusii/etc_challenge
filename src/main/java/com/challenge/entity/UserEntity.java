@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @NoArgsConstructor
-public class Users {
+@Table(name = "users")
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +19,8 @@ public class Users {
     private String userName;
 
     private String phone;
+
+    @Column(name = "range_age")
     private String age;
     private String gender;
 

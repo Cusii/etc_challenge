@@ -1,15 +1,17 @@
 package com.challenge.service;
 
-import com.challenge.entity.Users;
+import com.challenge.entity.UserEntity;
 import com.challenge.exception.UserAlreadyExistsException;
 import com.challenge.mapper.UserMapper;
 import com.challenge.model.UserRegisterDTO;
+import com.challenge.model.UserResponseDTO;
 import com.challenge.repository.UserRepository;
 import com.challenge.util.EncryptionUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.Optional;
 
 @Slf4j
@@ -22,24 +24,27 @@ public class UserService {
     UserRepository userRepository;
 
     @Transactional
-    public Users userRegister(UserRegisterDTO userRegisterDTO) {
-        Optional<Users> userName = userRepository.findByName(userRegisterDTO.getUserName());
+    public UserEntity userRegister(UserRegisterDTO userRegisterDTO) {
+        Optional<UserEntity> userName = userRepository.findByName(userRegisterDTO.getUserName());
         if (userName.isPresent()) {
-            String errorMessage = "El usuario " + userRegisterDTO.getUserName() + " ya existe.";
-            log.error(errorMessage);
-            throw new UserAlreadyExistsException(errorMessage);
+            throw new UserAlreadyExistsException("El usuario " + userRegisterDTO.getUserName() + " ya existe.");
         }
-        Users user = mapper.toEntity(userRegisterDTO);
+        UserEntity user = mapper.toEntity(userRegisterDTO);
         user.setUserPassword(encryptPassword(userRegisterDTO.getPassword()));
         userRepository.persist(user);
-        log.debug("User created with ID: {}", user.getUserId());
         return user;
     }
 
+    public UserResponseDTO getUserById(Long id) throws Exception {
+        UserEntity userEntity = userRepository.findByIdOptional(id)
+                .orElseThrow(() -> new Exception("Error al obtener el usuario"));
+        return mapper.toResponseDTO(userEntity);
+    }
+
     public boolean validateUserPassword(String userName, String plainPassword) {
-        Optional<Users> userOptional = userRepository.findByName(userName);
+        Optional<UserEntity> userOptional = userRepository.findByName(userName);
         if (userOptional.isPresent()) {
-            Users user = userOptional.get();
+            UserEntity user = userOptional.get();
             try {
                 String decryptedPassword = EncryptionUtil.decrypt(user.getUserPassword());
                 return plainPassword.equals(decryptedPassword);

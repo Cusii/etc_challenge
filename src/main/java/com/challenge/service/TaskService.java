@@ -1,6 +1,6 @@
 package com.challenge.service;
 
-import com.challenge.entity.Tasks;
+import com.challenge.entity.TaskEntity;
 import com.challenge.exception.TaskNotFoundException;
 import com.challenge.mapper.TaskMapper;
 import com.challenge.model.TaskDTO;
@@ -22,18 +22,18 @@ public class TaskService {
     TaskRepository taskRepository;
 
     @Transactional
-    public Tasks createTask(TaskDTO taskDTO) {
+    public TaskEntity createTask(TaskDTO taskDTO) {
         validateTaskDTO(taskDTO);
-        Tasks task = mapper.toEntity(taskDTO);
+        TaskEntity task = mapper.toEntity(taskDTO);
         taskRepository.persist(task);
         log.debug("Task created with ID: {}", task.getTaskId());
         return task;
     }
 
     @Transactional
-    public Tasks updateTask(Long id, TaskDTO taskDTO) {
+    public TaskEntity updateTask(Long id, TaskDTO taskDTO) {
         validateTaskDTO(taskDTO);
-        Tasks task = findTaskOrThrow(id);
+        TaskEntity task = findTaskOrThrow(id);
         task.setTaskName(taskDTO.getTaskName());
         task.setDescription(taskDTO.getDescription());
         task.setStatus(taskDTO.getStatus());
@@ -45,18 +45,18 @@ public class TaskService {
 
     @Transactional
     public void deleteTask(Long id) {
-        Tasks task = findTaskOrThrow(id);
+        TaskEntity task = findTaskOrThrow(id);
         taskRepository.delete(task);
         log.debug("Task deleted with ID: {}", id);
     }
 
     public TaskDTO getTaskById(Long id) {
-        Tasks task = findTaskOrThrow(id);
+        TaskEntity task = findTaskOrThrow(id);
         return mapper.toDTO(task);
     }
 
     public List<TaskDTO> getAllTasks() {
-        List<Tasks> tasks = taskRepository.listAll();
+        List<TaskEntity> tasks = taskRepository.listAll();
         log.info("Retrieved {} tasks", tasks.size());
         return tasks.stream()
                 .map(mapper::toDTO)
@@ -69,7 +69,7 @@ public class TaskService {
         }
     }
 
-    private Tasks findTaskOrThrow(Long id) {
+    private TaskEntity findTaskOrThrow(Long id) {
         return taskRepository.findByIdOptional(id)
                 .orElseThrow(() -> new TaskNotFoundException("Task with ID " + id + " not found"));
     }

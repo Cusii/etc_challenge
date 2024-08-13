@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-public class Tasks {
+@Table(name = "tasks")
+public class TaskEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "task_id")

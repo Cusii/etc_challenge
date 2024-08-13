@@ -1,6 +1,6 @@
 package com.challenge.service;
 
-import com.challenge.entity.Tasks;
+import com.challenge.entity.TaskEntity;
 import com.challenge.exception.TaskNotFoundException;
 import com.challenge.mapper.TaskMapper;
 import com.challenge.model.TaskDTO;
@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class TaskServiceTest {
@@ -34,7 +33,7 @@ class TaskServiceTest {
     private TaskService taskService;
 
     private TaskDTO taskDTO;
-    private Tasks task;
+    private TaskEntity task;
 
     @BeforeEach
     void setUp() {
@@ -45,7 +44,7 @@ class TaskServiceTest {
         taskDTO.setDescription("Description");
         taskDTO.setStatus("pending");
 
-        task = new Tasks();
+        task = new TaskEntity();
         task.setTaskId(1L);
         task.setTaskName("Task Name");
         task.setDescription("Description");
@@ -55,14 +54,14 @@ class TaskServiceTest {
     @Test
     void testCreateTask_Success() {
         when(taskMapper.toEntity(any(TaskDTO.class))).thenReturn(task);
-        doNothing().when(taskRepository).persist(any(Tasks.class));
-        when(taskMapper.toDTO(any(Tasks.class))).thenReturn(taskDTO);
+        doNothing().when(taskRepository).persist(any(TaskEntity.class));
+        when(taskMapper.toDTO(any(TaskEntity.class))).thenReturn(taskDTO);
 
-        Tasks createdTask = taskService.createTask(taskDTO);
+        TaskEntity createdTask = taskService.createTask(taskDTO);
 
         assertNotNull(createdTask);
         assertEquals("Task Name", createdTask.getTaskName());
-        verify(taskRepository, times(1)).persist(any(Tasks.class));
+        verify(taskRepository, times(1)).persist(any(TaskEntity.class));
     }
 
     @Test
@@ -77,20 +76,20 @@ class TaskServiceTest {
         });
 
         assertEquals("Task name cannot be null or empty", thrown.getMessage());
-        verify(taskRepository, times(0)).persist(any(Tasks.class));
+        verify(taskRepository, times(0)).persist(any(TaskEntity.class));
     }
 
     @Test
     void testUpdateTask_Success() {
         when(taskRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(task));
         when(taskMapper.toEntity(any(TaskDTO.class))).thenReturn(task);
-        doNothing().when(taskRepository).persist(any(Tasks.class));
+        doNothing().when(taskRepository).persist(any(TaskEntity.class));
 
-        Tasks updatedTask = taskService.updateTask(1L, taskDTO);
+        TaskEntity updatedTask = taskService.updateTask(1L, taskDTO);
 
         assertNotNull(updatedTask);
         assertEquals("Task Name", updatedTask.getTaskName());
-        verify(taskRepository, times(1)).persist(any(Tasks.class));
+        verify(taskRepository, times(1)).persist(any(TaskEntity.class));
     }
 
     @Test
@@ -102,16 +101,16 @@ class TaskServiceTest {
         });
 
         assertEquals("Task with ID 1 not found", thrown.getMessage());
-        verify(taskRepository, times(0)).persist(any(Tasks.class));
+        verify(taskRepository, times(0)).persist(any(TaskEntity.class));
     }
 
     @Test
     void testDeleteTask_Success() {
         when(taskRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(task));
-        doNothing().when(taskRepository).delete(any(Tasks.class));
+        doNothing().when(taskRepository).delete(any(TaskEntity.class));
 
         assertDoesNotThrow(() -> taskService.deleteTask(1L));
-        verify(taskRepository, times(1)).delete(any(Tasks.class));
+        verify(taskRepository, times(1)).delete(any(TaskEntity.class));
     }
 
     @Test
@@ -123,13 +122,13 @@ class TaskServiceTest {
         });
 
         assertEquals("Task with ID 1 not found", thrown.getMessage());
-        verify(taskRepository, times(0)).delete(any(Tasks.class));
+        verify(taskRepository, times(0)).delete(any(TaskEntity.class));
     }
 
     @Test
     void testGetTaskById_Success() {
         when(taskRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(task));
-        when(taskMapper.toDTO(any(Tasks.class))).thenReturn(taskDTO);
+        when(taskMapper.toDTO(any(TaskEntity.class))).thenReturn(taskDTO);
 
         TaskDTO result = taskService.getTaskById(1L);
 
@@ -150,11 +149,11 @@ class TaskServiceTest {
 
     @Test
     void testGetAllTasks_Success() {
-        List<Tasks> tasks = Stream.of(task).collect(Collectors.toList());
+        List<TaskEntity> tasks = Stream.of(task).collect(Collectors.toList());
         List<TaskDTO> taskDTOs = Stream.of(taskDTO).collect(Collectors.toList());
 
         when(taskRepository.listAll()).thenReturn(tasks);
-        when(taskMapper.toDTO(any(Tasks.class))).thenReturn(taskDTO);
+        when(taskMapper.toDTO(any(TaskEntity.class))).thenReturn(taskDTO);
 
         List<TaskDTO> result = taskService.getAllTasks();
 
